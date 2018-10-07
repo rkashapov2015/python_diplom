@@ -1,2 +1,3 @@
 !.gitignore
 groups.json
+__pycache__
