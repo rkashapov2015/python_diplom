@@ -1,6 +1,7 @@
 
 from initdata import *
 from vkstuff import *
+import logging
 from urllib.parse import urlencode
 import json
 import time
@@ -10,7 +11,6 @@ import sys
 def find_original_groups(user):
     groups_id = set(map(lambda group: group.id, user.groups))
     
-    #print(groups_id)
     count_iterations = len(user.friends)
     print('count friends: ', count_iterations)
     iterator = 0
@@ -55,20 +55,23 @@ def print_process(iterator, total):
     sys.stdout.write('\r' + print_str + ': %4.2f%%' % percent )
     sys.stdout.flush()
 
-oauth_data = {
-    'client_id': APP_ID,
-    'display': 'page',
-    'scope': 'friends',
-    'response_type': 'token'
-}
-
-if TOKEN == 'NONE':
-    full_url = '?'.join((OAUTH_URL, urlencode(oauth_data)))
-    print('Получите свой токен')
-    print(full_url)
-    quit()
-
 def run():
+    logging.basicConfig(filename="logs/error.log", level=logging.ERROR)
+    logging.basicConfig(filename="logs/info.log", level=logging.INFO)
+
+    oauth_data = {
+        'client_id': APP_ID,
+        'display': 'page',
+        'scope': 'friends',
+        'response_type': 'token'
+    }
+
+    if TOKEN == 'NONE':
+        full_url = '?'.join((OAUTH_URL, urlencode(oauth_data)))
+        print('Получите свой токен')
+        print(full_url)
+        quit()
+
     try:
         factory = Factory()
         id = input('Enter id or domain page user: ')
@@ -80,9 +83,10 @@ def run():
 
         groups_data = find_original_groups(user1)
         save_to_file('groups.json', groups_data)
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, KeyError) as key_error:
+        logging.error(key_error.msg)
         exit()
-    except KeyError:
-        exit()
-
+    except ValueError as value_error:
+        logging.error(value_error.msg)
+        
 run()

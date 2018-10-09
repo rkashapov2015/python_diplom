@@ -1,3 +1,4 @@
 !.gitignore
 groups.json
 __pycache__
+logs/

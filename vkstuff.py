@@ -1,20 +1,13 @@
 from initdata import *
 import requests
 
-def is_number(string):
-    try:
-        int(string)
-        return True
-    except ValueError:
-        return False
-
 class Factory:
 
     def __init__(self):
         pass
     
     def find_user(self, id):
-        if is_number(id):
+        if id.isnumeric():
             return self.get_user_by_id(id)
         else:
             return self.get_user_by_username(id)
@@ -47,9 +40,8 @@ class Factory:
         if 'response' not in json or 'items' not in json['response']:
             print(json)
             raise ValueError('failed search user')
-        
+
         user = User()
-        
         user.load(json['response']['items'][0])
         user.get_friends()
         user.get_groups()
