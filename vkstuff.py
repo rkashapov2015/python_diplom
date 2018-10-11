@@ -1,53 +1,6 @@
 from initdata import *
 import requests
 
-class Factory:
-
-    def __init__(self):
-        pass
-    
-    def find_user(self, id):
-        if id.isnumeric():
-            return self.get_user_by_id(id)
-        else:
-            return self.get_user_by_username(id)
-
-    def get_user_by_id(self, id):
-        params = {
-            'access_token': TOKEN,
-            'user_ids': id,
-            'fields': 'domain',
-            'v': '5.85'
-        }
-        result = requests.get(API_URL + '/users.get', params)
-        json = result.json()
-        user = User()
-        user.load(json['response'][0])
-        user.get_friends()
-        user.get_groups()
-        return user
-
-    def get_user_by_username(self, username):
-        params = {
-            'access_token': TOKEN,
-            'q': username,
-            'fields': 'domain',
-            'v': '5.85'
-        }
-        result = requests.get(API_URL + '/users.search', params)
-        json = result.json()
-
-        if 'response' not in json or 'items' not in json['response']:
-            print(json)
-            raise ValueError('failed search user')
-
-        user = User()
-        user.load(json['response']['items'][0])
-        user.get_friends()
-        user.get_groups()
-        return user
-
-
 class User:
 
     def __init__(self):
@@ -161,8 +114,7 @@ class User:
     def get_groups(self):
 
         if (self.is_deactivated):
-            print('not get groups')
-            return []
+            raise ValueError('not get groups for deactivated user')
 
         params = {
             'access_token': TOKEN,
@@ -247,3 +199,115 @@ class Group:
 
     def __str__(self):
         return '/'.join((VK_URL, self.screen_name))
+
+
+def find_user(id):
+    if id.isnumeric():
+        return get_user_by_id(id)
+    else:
+        return get_user_by_username(id)
+
+def get_user_by_username(username):
+    params = {
+        'access_token': TOKEN,
+        'q': username,
+        'fields': 'domain',
+        'v': '5.85'
+    }
+    result = requests.get(API_URL + '/users.search', params)
+    json = result.json()
+
+    if 'response' not in json or 'items' not in json['response']:
+        raise ValueError('failed search user')
+
+    user = User()
+    user.load(json['response']['items'][0])
+    friends = get_friends(user)
+    user.friends = friends
+    groups = get_groups(user)
+    user.groups = groups
+    return user
+
+def get_user_by_id(id):
+    params = {
+        'access_token': TOKEN,
+        'user_ids': id,
+        'fields': 'domain',
+        'v': '5.85'
+    }
+    result = requests.get(API_URL + '/users.get', params)
+    json = result.json()
+    user = User()
+    user.load(json['response'][0])
+    friends = get_friends(user)
+    user.friends = friends
+    groups = get_groups(user)
+    user.groups = groups
+    return user
+
+def get_friends(user: User):
+    if (user.is_deactivated):
+        raise ValueError('user not active')
+        #return []
+    
+    params = {
+        'access_token': TOKEN,
+        'user_id': user.id,
+        'fields': 'domain',
+        'v': '5.85'
+    }
+
+    result = requests.get(API_URL + '/friends.get', params)
+    json = result.json()
+    items = []
+    if ('response' in json and 'items' in json['response']):
+        items = json['response']['items']
+
+    if ('error' in json):
+        error_code = json['error']['error_code']
+        error_msg = json['error']['error_msg']
+        raise ValueError(f'{error_code} {error_msg}')
+
+    friends = []
+    for data in items:
+        friend = User()
+        friend.load(data)
+        friends.append(friend)
+
+    return friends
+
+def get_groups(user: User):
+
+    if (user.is_deactivated):
+        return []
+
+    params = {
+        'access_token': TOKEN,
+        'user_id': user.id,
+        'extended': 1,
+        'fields': 'members_count',
+        'v': '5.85'
+    }
+
+    result = requests.get(API_URL + '/groups.get', params)
+    json = result.json()
+    items = []
+
+    if ('response' in json and 'items' in json['response']):
+        items = json['response']['items']
+
+    groups = []
+    for data in items:
+        group = Group()
+        if 'id' in data:
+            group.id = data['id']
+        if 'name' in data:
+            group.name = data['name']
+        if 'screen_name' in data:
+            group.screen_name = data['screen_name']
+        if 'members_count' in data:
+            group.members_count = data['members_count']
+
+        groups.append(group)
+    
+    return groups

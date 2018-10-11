@@ -1,7 +1,4 @@
-
-from initdata import *
 from vkstuff import *
-import logging
 from urllib.parse import urlencode
 import json
 import time
@@ -45,7 +42,7 @@ def find_original_groups(user):
 
 def save_to_file(filename, data):
     with open(filename, 'w') as f:
-        json.dump(data, f)
+        json.dump(data, f, ensure_ascii=False)
 
 def print_process(iterator, total):
     length = 100
@@ -56,9 +53,7 @@ def print_process(iterator, total):
     sys.stdout.flush()
 
 def run():
-    logging.basicConfig(filename="logs/error.log", level=logging.ERROR)
-    logging.basicConfig(filename="logs/info.log", level=logging.INFO)
-
+    
     oauth_data = {
         'client_id': APP_ID,
         'display': 'page',
@@ -73,20 +68,26 @@ def run():
         quit()
 
     try:
-        factory = Factory()
+        #factory = Factory()
         id = input('Enter id or domain page user: ')
         
-        user1 = factory.find_user(id)
+        #user1 = factory.find_user(id)
+        user = find_user(id)
+        friends = get_friends(user)
+        user.friends = friends
 
-        print('User: ', user1)
-        print(len(user1.friends))
+        groups = get_groups(user)
+        user.groups = groups
+        
+        print('User: ', user)
+        print(len(user.friends))
 
-        groups_data = find_original_groups(user1)
+        groups_data = find_original_groups(user)
         save_to_file('groups.json', groups_data)
-    except (KeyboardInterrupt, KeyError) as key_error:
-        logging.error(key_error.msg)
+    except (KeyboardInterrupt, KeyError, ) as key_error:
+        logging.info(key_error)
         exit()
     except ValueError as value_error:
-        logging.error(value_error.msg)
-        
+        logging.error(value_error)
+        exit()
 run()
