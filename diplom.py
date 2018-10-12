@@ -83,7 +83,6 @@ def run():
         user['groups'] = get_groups(user)
 
         print('User: ', user['domain'])
-        print(len(user['friends']))
 
         groups_data = find_original_groups(user)
         save_to_file('groups.json', groups_data)
