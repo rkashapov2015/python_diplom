@@ -100,5 +100,8 @@ def check_response(response_data):
     if 'response' not in response_data or 'items' not in response_data['response']:
         logging.error('response is not valid')
         raise ValueError('response is not valid')
+            
+    if len(response_data['response']['items']) == 0:
+        raise ValueError('found nothing')
     
     

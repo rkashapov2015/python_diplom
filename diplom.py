@@ -90,10 +90,8 @@ def run():
         logging.info(key_error)
         exit()
     except ValueError as value_error:
-        exc_type, exc_obj, exc_tb = sys.exc_info()
-        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
         logging.error(value_error)
-        logging.error(exc_type, fname, exc_tb.tb_lineno)
+        print(value_error)
         exit()
         
 run()
