@@ -3,9 +3,10 @@ from urllib.parse import urlencode
 import json
 import time
 import sys
+import os
 
 
-def find_original_groups(user):
+def find_original_groups(user: User):
     groups_id = set(map(lambda group: group.id, user.groups))
     
     count_iterations = len(user.friends)
@@ -17,7 +18,8 @@ def find_original_groups(user):
             iterator += 1
             print_process(iterator, count_iterations)
             continue
-        groups = friend.get_groups()
+        groups = get_groups(friend)
+        friend.groups = groups
         groups_id_friend = set(map(lambda group: group.id, groups))
         
         groups_id = (groups_id - groups_id_friend)
@@ -45,11 +47,11 @@ def save_to_file(filename, data):
         json.dump(data, f, ensure_ascii=False)
 
 def print_process(iterator, total):
-    length = 100
+    length = 50
     percent = (iterator * 100)/total
     filled_length = int(length * iterator // total)
-    print_str =  '=' * filled_length + '-' * (100 - filled_length)
-    sys.stdout.write('\r' + print_str + ': %4.2f%%' % percent )
+    print_str =  '=' * filled_length + '-' * (length - filled_length)
+    sys.stdout.write('\r[' + print_str + ']: %4.2f%%' % percent)
     sys.stdout.flush()
 
 def run():
@@ -65,13 +67,12 @@ def run():
         full_url = '?'.join((OAUTH_URL, urlencode(oauth_data)))
         print('Получите свой токен')
         print(full_url)
+        
         quit()
 
     try:
-        #factory = Factory()
-        id = input('Enter id or domain page user: ')
         
-        #user1 = factory.find_user(id)
+        id = input('Enter id or domain page user: ')
         user = find_user(id)
         friends = get_friends(user)
         user.friends = friends
@@ -88,6 +89,10 @@ def run():
         logging.info(key_error)
         exit()
     except ValueError as value_error:
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
         logging.error(value_error)
+        print(exc_type, fname, exc_tb.tb_lineno, exc_obj)
+        #logging.error(exc_type, fname, exc_tb.tb_lineno)
         exit()
 run()

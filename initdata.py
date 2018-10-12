@@ -13,5 +13,8 @@ logs_path = os.path.join(current_dir, 'logs')
 if not os.path.exists(logs_path):
     os.mkdir(logs_path)
 
+logging.basicConfig(filename="logs/debug.log", level=logging.DEBUG)
+logging.basicConfig(filename="logs/warning.log", level=logging.WARNING)
 logging.basicConfig(filename="logs/error.log", level=logging.ERROR)
 logging.basicConfig(filename="logs/info.log", level=logging.INFO)
+

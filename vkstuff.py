@@ -81,69 +81,6 @@ class User:
     def show_friends(self):
         for friend in self.friends:
             print(friend)
-
-    def get_friends(self):
-        if (self.is_deactivated):
-            return False
-        
-        params = {
-            'access_token': TOKEN,
-            'user_id': self.id,
-            'fields': 'domain',
-            'v': '5.85'
-        }
-
-        result = requests.get(API_URL + '/friends.get', params)
-        json = result.json()
-        items = []
-        if ('response' in json and 'items' in json['response']):
-            items = json['response']['items']
-
-        if ('error' in json):
-            error_code = json['error']['error_code']
-            error_msg = json['error']['error_msg']
-            print(f'{error_code} {error_msg}')
-
-        for data in items:
-            friend = User()
-            friend.load(data)
-            self.friends.append(friend)
-
-        return True
-
-    def get_groups(self):
-
-        if (self.is_deactivated):
-            raise ValueError('not get groups for deactivated user')
-
-        params = {
-            'access_token': TOKEN,
-            'user_id': self.id,
-            'extended': 1,
-            'fields': 'members_count',
-            'v': '5.85'
-        }
-        result = requests.get(API_URL + '/groups.get', params)
-        json = result.json()
-        items = []
-
-        if ('response' in json and 'items' in json['response']):
-            items = json['response']['items']
-
-        for data in items:
-            group = Group()
-            if 'id' in data:
-                group.id = data['id']
-            if 'name' in data:
-                group.name = data['name']
-            if 'screen_name' in data:
-                group.screen_name = data['screen_name']
-            if 'members_count' in data:
-                group.members_count = data['members_count']
-
-            self.groups.append(group)
-        
-        return self.groups
         
     def load(self, user_data):
         if type(user_data) == dict:
@@ -217,8 +154,10 @@ def get_user_by_username(username):
     result = requests.get(API_URL + '/users.search', params)
     json = result.json()
 
+    logging.debug(json)
     if 'response' not in json or 'items' not in json['response']:
-        raise ValueError('failed search user')
+        logging.error('failed search user')
+        raise ValueError(f'failed search user {username}')
 
     user = User()
     user.load(json['response']['items'][0])
@@ -248,7 +187,6 @@ def get_user_by_id(id):
 def get_friends(user: User):
     if (user.is_deactivated):
         raise ValueError('user not active')
-        #return []
     
     params = {
         'access_token': TOKEN,
@@ -266,7 +204,8 @@ def get_friends(user: User):
     if ('error' in json):
         error_code = json['error']['error_code']
         error_msg = json['error']['error_msg']
-        raise ValueError(f'{error_code} {error_msg}')
+        logging.error(f'{error_code} {error_msg}')
+        #raise ValueError(f'{error_code} {error_msg}')
 
     friends = []
     for data in items:
@@ -279,6 +218,7 @@ def get_friends(user: User):
 def get_groups(user: User):
 
     if (user.is_deactivated):
+        logging.warning(f'user not active {user}')
         return []
 
     params = {
@@ -295,6 +235,12 @@ def get_groups(user: User):
 
     if ('response' in json and 'items' in json['response']):
         items = json['response']['items']
+
+    if ('error' in json):
+        error_code = json['error']['error_code']
+        error_msg = json['error']['error_msg']
+        #raise ValueError(f'{error_code} {error_msg}')
+        logging.warning(f'{error_code} {error_msg}')
 
     groups = []
     for data in items:
