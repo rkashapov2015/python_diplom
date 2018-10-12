@@ -205,7 +205,6 @@ def get_friends(user: User):
         error_code = json['error']['error_code']
         error_msg = json['error']['error_msg']
         logging.error(f'{error_code} {error_msg}')
-        #raise ValueError(f'{error_code} {error_msg}')
 
     friends = []
     for data in items:
@@ -239,7 +238,6 @@ def get_groups(user: User):
     if ('error' in json):
         error_code = json['error']['error_code']
         error_msg = json['error']['error_msg']
-        #raise ValueError(f'{error_code} {error_msg}')
         logging.warning(f'{error_code} {error_msg}')
 
     groups = []

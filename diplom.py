@@ -92,7 +92,6 @@ def run():
         exc_type, exc_obj, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
         logging.error(value_error)
-        print(exc_type, fname, exc_tb.tb_lineno, exc_obj)
-        #logging.error(exc_type, fname, exc_tb.tb_lineno)
+        logging.error(exc_type, fname, exc_tb.tb_lineno)
         exit()
 run()
