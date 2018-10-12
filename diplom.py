@@ -8,8 +8,8 @@ import os
 
 
 def find_original_groups(user):    
+
     groups_id = set(map(lambda group: group['id'], user['groups']))
-    
     count_iterations = len(user['friends'])
     print('count friends: ', count_iterations)
     iterator = 0
@@ -19,7 +19,9 @@ def find_original_groups(user):
             iterator += 1
             print_process(iterator, count_iterations)
             continue
+        
         friend['groups'] = get_groups(friend)
+        
         groups_id_friend = set(map(lambda group: group['id'], friend['groups']))
         
         groups_id = (groups_id - groups_id_friend)
@@ -31,15 +33,17 @@ def find_original_groups(user):
         print_process(iterator, count_iterations)
 
     groups_objects = list(filter(lambda group: group['id'] in groups_id, user['groups']))
-    groups_data = []
     
+    return prepare_groups_for_save(groups_objects)
+    
+def prepare_groups_for_save(groups_objects):
+    groups_data = []
     for group_objects in groups_objects:
         groups_data.append({
             'name': group_objects['name'],
             'gid': group_objects['id'],
             'members_count': group_objects['members_count']
         })
-
     return groups_data
 
 def save_to_file(filename, data):
@@ -72,14 +76,12 @@ def run():
         quit()
 
     try:
-        
         id = input('Enter id or domain page user: ')
         user = find_user(id)
+        
         user['friends'] = get_friends(user)
-
         user['groups'] = get_groups(user)
-        
-        
+
         print('User: ', user['domain'])
         print(len(user['friends']))
 
@@ -94,4 +96,5 @@ def run():
         logging.error(value_error)
         logging.error(exc_type, fname, exc_tb.tb_lineno)
         exit()
+        
 run()

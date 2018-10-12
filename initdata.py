@@ -8,4 +8,3 @@ VK_URL = 'https://vk.com'
 TOKEN = 'ed1271af9e8883f7a7c2cefbfddfcbc61563029666c487b2f71a5227cce0d1b533c4af4c5b888633c06ae'
 
 logging.basicConfig(filename="log.log", level=logging.INFO)
-
