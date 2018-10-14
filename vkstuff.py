@@ -33,14 +33,12 @@ def get_friends(user_data):
     check_user(user_data)
 
     json = get_friends_from_vk(user_data['id'])
+
+    check_response(json)
+
     items = []
     if ('response' in json and 'items' in json['response']):
         items = json['response']['items']
-
-    if ('error' in json):
-        error_code = json['error']['error_code']
-        error_msg = json['error']['error_msg']
-        logging.error(f'{error_code} {error_msg}')
 
     friends = []
 
@@ -55,14 +53,13 @@ def get_groups(user_data):
         return []
 
     json = get_groups_from_vk(user_data['id'])
-    items = []    
+
+    check_response(json)
+
+    items = []
+
     if ('response' in json and 'items' in json['response']):
         items = json['response']['items']
-
-    if ('error' in json):
-        error_code = json['error']['error_code']
-        error_msg = json['error']['error_msg']
-        logging.warning(f'{error_code} {error_msg}')
 
     groups = []
     for data in items:
@@ -96,12 +93,15 @@ def check_user(user_data):
     if 'deactivated' in user_data:
         raise ValueError('user not active')
 
-def check_response(response_data):    
+def check_response(response_data):
+    if ('error' in response_data):
+        error_code = response_data['error']['error_code']
+        error_msg = response_data['error']['error_msg']
+        logging.error(f'{error_code} {error_msg}')
+
     if 'response' not in response_data or 'items' not in response_data['response']:
         logging.error('response is not valid')
         raise ValueError('response is not valid')
             
     if len(response_data['response']['items']) == 0:
         raise ValueError('found nothing')
-    
-    

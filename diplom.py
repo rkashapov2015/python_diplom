@@ -6,7 +6,6 @@ import sys
 import os
 
 
-
 def find_original_groups(user):    
 
     groups_id = set(map(lambda group: group['id'], user['groups']))
@@ -15,17 +14,12 @@ def find_original_groups(user):
     iterator = 0
     
     for friend in user['friends']:
-        if 'deactivated' in friend:
-            iterator += 1
-            print_process(iterator, count_iterations)
-            continue
-        
-        friend['groups'] = get_groups(friend)
-        
-        groups_id_friend = set(map(lambda group: group['id'], friend['groups']))
-        
-        groups_id = (groups_id - groups_id_friend)
-        
+        if 'deactivated' not in friend:    
+
+            friend['groups'] = get_groups(friend)
+            groups_id_friend = set(map(lambda group: group['id'], friend['groups']))
+            groups_id = (groups_id - groups_id_friend)
+                
         iterator += 1
         if iterator % 3 == 0:
             time.sleep(1)
@@ -34,7 +28,11 @@ def find_original_groups(user):
 
     groups_objects = list(filter(lambda group: group['id'] in groups_id, user['groups']))
     
-    return prepare_groups_for_save(groups_objects)
+    #return prepare_groups_for_save(groups_objects)
+    return groups_objects
+
+def compare_groups(groups_id: set):
+    pass
     
 def prepare_groups_for_save(groups_objects):
     groups_data = []
@@ -85,6 +83,7 @@ def run():
         print('User: ', user['domain'])
 
         groups_data = find_original_groups(user)
+        groups_data = prepare_groups_for_save(groups_data)
         save_to_file('groups.json', groups_data)
     except (KeyboardInterrupt, KeyError, ) as key_error:
         logging.info(key_error)
